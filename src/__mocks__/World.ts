@@ -31,7 +31,7 @@ class MockWorld {
   files: Map<string, IFile> = new Map()
   branch = 'master'
   store: MockDataStoreEntry[] = []
-  tasks: MockTask[] = []
+  tasks: any[] = []
   commits: MockCommit[] = []
 
   file(fileName: string, contents: string) {

@@ -3,6 +3,7 @@ import { logger, invariant } from 'tkt'
 import { execSync, execFileSync } from 'child_process'
 import { IFile } from './types'
 import { File } from './File'
+import { Logger } from 'mongodb'
 
 const log = logger('CodeRepository')
 
@@ -50,17 +51,38 @@ type CodeRepositoryState = {
 
 export async function scanCodeRepository(): Promise<CodeRepositoryState> {
   log.info('Search for files with TODO tags...')
-  const filesWithTodoMarker = execSync('git grep -Il TODO', {
-    encoding: 'utf8',
-  })
-    .split('\n')
-    .filter(name => name)
+  let filesWithTodoMarker: any[] = [];
+  try {
+    filesWithTodoMarker = execSync('git grep -Il TODO', {
+      encoding: 'utf8',
+    }).split('\n')
+      .filter(name => name)
+  } catch (e) {
+  }
+
+  let filesWithFIXMEMarker: any[] = [];
+  try {
+    filesWithFIXMEMarker = execSync('git grep -Il FIXME', {
+      encoding: 'utf8',
+    }).split('\n')
+      .filter(name => name)
+  } catch (e) {
+  }
+  console.log(files);
   const files: IFile[] = []
   log.info('Parsing TODO tags...')
   for (const filePath of filesWithTodoMarker) {
     const file = new File(filePath)
     files.push(file)
   }
+
+  log.info('Parsing FIXME tags...')
+  for (const filePath of filesWithFIXMEMarker) {
+    const file = new File(filePath)
+    files.push(file)
+  }
+  console.log(files);
+
   return {
     files,
     async saveChanges(commitMessage) {

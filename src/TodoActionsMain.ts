@@ -13,6 +13,9 @@ export async function runMain() {
   log.info('Search for files with TODO tags...')
   const { files, saveChanges } = await CodeRepository.scanCodeRepository()
 
+  /**
+   * Resgatar todos TODO e FIXME
+   */
   const todoComments: ITodo[] = []
   for (const file of files) {
     // TODO [#22]: Implement ignoring paths
@@ -26,6 +29,9 @@ export async function runMain() {
   const todosWithoutReference = todoComments.filter(todo => !todo.reference)
   log.info('TODOs without references: %s', todosWithoutReference.length)
 
+  /**
+   * Adicionar referencia
+   */
   if (todosWithoutReference.length > 0) {
     for (const todo of todosWithoutReference) {
       todo.reference = `$${new ObjectId().toHexString()}`
@@ -44,7 +50,7 @@ export async function runMain() {
   }
 
   // Update all the tasks according to the TODO state.
-  const associated = await TaskUpdater.ensureAllTodosAreAssociated(todoComments)
+  const associated = await TaskUpdater.ensureAllTodosAreAssociated(todoComments);
   await saveChanges('Update TODO references: ' + associated.join(', '))
 
   // Reconcile all tasks

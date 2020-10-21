@@ -4,6 +4,8 @@ import { ObjectId } from 'mongodb'
 
 import { getMongoDb } from './MongoDB'
 import { currentProcessId } from './ProcessId'
+import { createPandaTask, getUncompletedTasks, updatePandaTask } from './PandaAPI'
+import * as TaskInformationGenerator from './TaskInformationGenerator'
 
 const log = logger('DataStore')
 
@@ -18,8 +20,9 @@ type TaskCreationLock = {
 type Task = {
   taskReference: string
   state: ITaskState
+  hash?: string
   markAsCompleted(): Promise<void>
-  updateState(newState: ITaskState): Promise<void>
+  updateState(newState: ITaskState, data: any): Promise<void>
 }
 
 export async function beginTaskResolution(
@@ -27,63 +30,38 @@ export async function beginTaskResolution(
   repositoryId: string,
   todo: ITodo,
 ): Promise<TaskResolutionProcedure> {
-  const db = await getMongoDb()
-  const _id = ObjectId.createFromHexString(todoUniqueKey)
+  const {
+    title,
+    body,
+    state,
+  } = TaskInformationGenerator.generateTaskInformationFromTodo(todo);
 
-  // Ensure a task exists in the database.
-  const task = await db.tasks.findOneAndUpdate(
-    { _id: _id },
-    {
-      $setOnInsert: {
-        _id: _id,
-        repositoryId: repositoryId,
-        taskReference: null,
-        createdAt: new Date(),
-        ownerProcessId: null,
-        ownerProcessTimestamp: null,
-      },
-    },
-    { upsert: true, returnOriginal: false },
-  )
-  if (!task.value) {
+  const task = await createPandaTask(todoUniqueKey, {
+    project: 'bdi-api',
+    name: '[DS Bot] ' + title,
+    description: body,
+    hash: state.hash,
+  });
+
+  // Erro ao criar task
+  if (!task.id) {
     throw new Error('Failed to upsert a task.')
   }
-  if (task.value.taskReference) {
+
+  /**
+   * Task já criada
+   */
+  if (task.new) {
     log.debug(
       'Found already-existing identifier %s for TODO %s.',
-      task.value.taskReference,
+      task.taskReference,
       todoUniqueKey,
     )
-    return { existingTaskReference: task.value.taskReference }
+    return { existingTaskReference: task.taskReference }
   }
 
   return {
     async acquireTaskCreationLock() {
-      // Acquire a lock...
-      log.debug(
-        'Acquiring lock for TODO %s (currentProcessId=%s).',
-        todoUniqueKey,
-        currentProcessId,
-      )
-      const lockedTask = await db.tasks.findOneAndUpdate(
-        {
-          _id: _id,
-          $or: [
-            { ownerProcessTimestamp: null },
-            { ownerProcessTimestamp: { $lt: new Date(Date.now() - 60e3) } },
-          ],
-        },
-        {
-          $set: {
-            ownerProcessId: currentProcessId,
-            ownerProcessTimestamp: new Date(),
-          },
-        },
-        { returnOriginal: false },
-      )
-      if (!lockedTask.value) {
-        throw new Error('Failed to acquire a lock for this task.')
-      }
       return {
         async finish(taskReference, state) {
           // Associate
@@ -91,10 +69,6 @@ export async function beginTaskResolution(
             'Created task %s for TODO %s. Saving changes.',
             taskReference,
             todoUniqueKey,
-          )
-          await db.tasks.findOneAndUpdate(
-            { _id: _id },
-            { $set: { taskReference: taskReference, hash: state.hash } },
           )
         },
       }
@@ -105,34 +79,23 @@ export async function beginTaskResolution(
 export async function findAllUncompletedTasks(
   repositoryId: string,
 ): Promise<Task[]> {
-  const db = await getMongoDb()
-  const result = await db.tasks
-    .find({
-      repositoryId: repositoryId,
-      completed: { $ne: true },
-      taskReference: { $ne: null },
-    })
-    .toArray()
+  let result = await getUncompletedTasks('bdi-api');
 
-  return result.map(taskData => {
+  return result.map((taskData: any) => {
     return {
       taskReference:
         taskData.taskReference ||
         invariant(false, 'Unexpected unassociated task.'),
-      state: {
-        hash: taskData.hash || '',
-      },
+      hash: taskData.hash,
       async markAsCompleted() {
-        await db.tasks.findOneAndUpdate(
-          { _id: taskData._id },
-          { $set: { completed: true } },
-        )
+        updatePandaTask(taskData.taskReference, { completed: true });
       },
-      async updateState(newState) {
-        await db.tasks.findOneAndUpdate(
-          { _id: taskData._id },
-          { $set: { hash: newState.hash } },
-        )
+      async updateState(newState, data: any) {
+        // await db.tasks.findOneAndUpdate(
+        //   { _id: taskData._id },
+        //   { $set: { hash: newState.hash } },
+        // )
+        updatePandaTask(taskData.taskReference, data);
       },
     } as Task
   })

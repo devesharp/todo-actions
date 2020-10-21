@@ -11,6 +11,7 @@ export const repoContext: Real['repoContext'] = {
 
 export const scanCodeRepository: Real['scanCodeRepository'] = async () => {
   const files = [...mockWorld.files.values()]
+
   return {
     files: files,
     async saveChanges(commitMessage) {

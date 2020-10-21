@@ -5,6 +5,7 @@ import * as CodeRepository from './CodeRepository'
 import * as TaskManagementSystem from './TaskManagementSystem'
 import * as DataStore from './DataStore'
 import * as TaskInformationGenerator from './TaskInformationGenerator'
+import { Logger } from 'mongodb'
 
 const log = logger('TaskUpdater')
 
@@ -34,6 +35,7 @@ export async function reconcileTasks(todos: ITodo[]) {
   const uncompletedTasks = await DataStore.findAllUncompletedTasks(
     CodeRepository.repoContext.repositoryNodeId,
   )
+
   log.info(
     'Number of registered uncompleted tasks: %s',
     uncompletedTasks.length,
@@ -46,7 +48,7 @@ export async function reconcileTasks(todos: ITodo[]) {
       !reference.startsWith('$'),
       'Expected all TODO comments to be associated by now.',
     )
-    const task = uncompletedTasks.find(t => t.taskReference === reference)
+    const task: any = uncompletedTasks.find(t => t.taskReference === reference)
     if (!task) {
       log.warn(
         'Cannot find a matching task for TODO comment with reference "%s"',
@@ -54,6 +56,7 @@ export async function reconcileTasks(todos: ITodo[]) {
       )
       continue
     }
+
     // TODO [#38]: Isolate error when updating tasks
     // Failure to update a task should not prevent the action from progressing forward.
     // We can simply skip processing this task for now.
@@ -63,20 +66,23 @@ export async function reconcileTasks(todos: ITodo[]) {
       body,
       state,
     } = TaskInformationGenerator.generateTaskInformationFromTodo(todo)
-    if (task.state.hash !== state.hash) {
+    if (task.hash !== state.hash) {
       log.info(
         'Hash for "%s" changed: "%s" => "%s" -- must update task.',
         reference,
-        task.state.hash,
+        task.hash,
         state.hash,
       )
-      await TaskManagementSystem.updateTask(reference, { title, body })
-      await task.updateState(state)
+      // await TaskManagementSystem.updateTask(reference, { title, body })
+      await task.updateState(state, {
+        name: '[DS Bot] ' + title,
+        description: body,
+      })
     } else {
       log.info(
         'Hash for "%s" remains unchanged: "%s".',
         reference,
-        task.state.hash,
+        task.hash,
       )
     }
   }
@@ -91,7 +97,7 @@ export async function reconcileTasks(todos: ITodo[]) {
     // Failure to complete a task should not prevent the action from progressing forward.
     // We can simply skip processing this task for now.
     // Since this script is designed to be idempotent, it can be retried later.
-    await TaskManagementSystem.completeTask(task.taskReference)
+    // await TaskManagementSystem.completeTask(task.taskReference)
     await task.markAsCompleted()
   }
 }
@@ -105,17 +111,27 @@ export async function resolveTask(
     CodeRepository.repoContext.repositoryNodeId,
     todo,
   )
+
+  // Tarefa já existe
   if ('existingTaskReference' in resolution) {
     return resolution.existingTaskReference
   }
   const taskCreationLock = await resolution.acquireTaskCreationLock()
   log.debug('Lock acquired. Now creating task for TODO %s.', todoUniqueKey)
-  const {
-    title,
-    body,
-    state,
-  } = TaskInformationGenerator.generateTaskInformationFromTodo(todo)
-  const taskReference = await TaskManagementSystem.createTask({ title, body })
-  taskCreationLock.finish(taskReference, state)
-  return taskReference
+
+  return todoUniqueKey
+
+  // if ('existingTaskReference' in resolution) {
+  //   return resolution.existingTaskReference
+  // }
+  // const taskCreationLock = await resolution.acquireTaskCreationLock()
+  // log.debug('Lock acquired. Now creating task for TODO %s.', todoUniqueKey)
+  // const {
+  //   title,
+  //   body,
+  //   state,
+  // } = TaskInformationGenerator.generateTaskInformationFromTodo(todo)
+  // const taskReference = await TaskManagementSystem.createTask({ title, body })
+  // taskCreationLock.finish(taskReference, state)
+  // return taskReference
 }
