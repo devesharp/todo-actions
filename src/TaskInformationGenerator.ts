@@ -6,6 +6,7 @@ type TaskInformation = {
   state: ITaskState
   title: string
   body: string
+  marker: string
 }
 
 export function generateTaskInformationFromTodo(todo: ITodo): TaskInformation {
@@ -26,8 +27,8 @@ export function generateTaskInformationFromTodo(todo: ITodo): TaskInformation {
     '',
     '---',
     `_` +
-      `This issue has been automatically created by [todo-actions](https://github.com/apps/todo-actions) based on a TODO comment found in ${link}. ` +
-      `It will automatically be closed when the TODO comment is removed from the default branch (${defaultBranch}).` +
+      `This issue has been automatically created by **ds-bot** based on a TODO/FIXME comment found in ${link}. ` +
+      `It will automatically be send to done when the TODO/FIXME comment is removed from the default branch (${defaultBranch}).` +
       `_`,
   ].join('\n')
 
@@ -40,5 +41,6 @@ export function generateTaskInformationFromTodo(todo: ITodo): TaskInformation {
     },
     title,
     body,
+    marker: todo.marker
   }
 }

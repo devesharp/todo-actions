@@ -33,6 +33,7 @@ export interface ITodo {
   reference: string | null
   title: string
   body: string
+  marker: string
 }
 
 export interface ITaskState {

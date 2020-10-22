@@ -15,6 +15,7 @@ export async function createPandaTask(taskReference: string, data: any) {
     new: true,
   };
 
+
   mockWorld.tasks.push(task);
 
   return Promise.resolve(task)
@@ -27,6 +28,8 @@ export async function getUncompletedTasks(project: string) {
 
 export async function updatePandaTask(reference: string, data: any) {
   let task = getTask(reference);
+
+  data.completed = data.status === 3;
 
   Object.assign(getTask(reference), {...getTask(reference), ...data});
 

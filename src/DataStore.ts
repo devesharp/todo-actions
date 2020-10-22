@@ -34,24 +34,25 @@ export async function beginTaskResolution(
     title,
     body,
     state,
+    marker
   } = TaskInformationGenerator.generateTaskInformationFromTodo(todo);
 
   const task = await createPandaTask(todoUniqueKey, {
-    project: 'bdi-api',
     name: '[DS Bot] ' + title,
     description: body,
     hash: state.hash,
+    marker,
   });
 
   // Erro ao criar task
-  if (!task.id) {
+  if (!task) {
     throw new Error('Failed to upsert a task.')
   }
 
   /**
    * Task já criada
    */
-  if (task.new) {
+  if (!task.new) {
     log.debug(
       'Found already-existing identifier %s for TODO %s.',
       task.taskReference,
@@ -88,14 +89,10 @@ export async function findAllUncompletedTasks(
         invariant(false, 'Unexpected unassociated task.'),
       hash: taskData.hash,
       async markAsCompleted() {
-        updatePandaTask(taskData.taskReference, { completed: true });
+        await updatePandaTask(taskData.taskReference, { status: 3 });
       },
       async updateState(newState, data: any) {
-        // await db.tasks.findOneAndUpdate(
-        //   { _id: taskData._id },
-        //   { $set: { hash: newState.hash } },
-        // )
-        updatePandaTask(taskData.taskReference, data);
+        await updatePandaTask(taskData.taskReference, data);
       },
     } as Task
   })
