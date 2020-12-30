@@ -1,3 +1,9 @@
+/***
+ *
+ * Adicionar variavel da key do projeto 'ds'
+ * Adicionar variavel da rota do panda junto com key
+ *
+ */
 import { runMain } from './TodoActionsMain'
 import { resetMockWorld } from './__mocks__/World'
 import sortBy from 'lodash.sortby'
@@ -76,7 +82,7 @@ it('save in panda TODO', async () => {
   expect(!!task1.completed).toBe(true)
   expect(!!task2.completed).toBe(false)
   expect(task2.name).toBe('[DS Bot] Somebody once told me?')
-})
+}, 10000)
 
 it('save in panda FIXME', async () => {
   const MARKER = 'FIXME'
@@ -147,4 +153,4 @@ it('save in panda FIXME', async () => {
   expect(!!task1.completed).toBe(true)
   expect(!!task2.completed).toBe(false)
   expect(task2.name).toBe('[DS Bot] Somebody once told me?')
-})
+}, 10000)
