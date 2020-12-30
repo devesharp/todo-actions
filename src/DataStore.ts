@@ -41,6 +41,8 @@ export async function beginTaskResolution(
     name: '[DS Bot] ' + title,
     description: body,
     hash: state.hash,
+    category: todo.category,
+    tags: todo.tags,
     marker,
   });
 

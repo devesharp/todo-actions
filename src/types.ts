@@ -33,6 +33,8 @@ export interface ITodo {
   reference: string | null
   title: string
   body: string
+  category?: string
+  tags?: any[]
   marker: string
 }
 

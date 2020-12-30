@@ -51,6 +51,8 @@ class Todo implements ITodo {
   line: number
   suffix: string
   body: string
+  category?: string
+  tags?: any[]
   title: string
   marker: string
 
@@ -89,8 +91,21 @@ class Todo implements ITodo {
   }
 
   handleLine(line: string) {
+
     if (!this.title) {
       this.title = line
+    } else if (line && line.match(/^@category: (.*)/)) {
+      this.category = line.split('@category: ')[1];
+    } else if (line && line.match(/^@tags: (.*)/)) {
+      this.tags = line.split('@tags: ')[1].split(',').map((i) => {
+
+        const color = i.match(/\((.*)\)/);
+
+        return {
+          name: i.replace(/\((.*)\)/, ''),
+          color: color ? color[1] : '#000000',
+        }
+      });
     } else if (this.body || line) {
       this.body += (this.body ? '\n' : '') + line
     }

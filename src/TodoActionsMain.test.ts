@@ -13,6 +13,70 @@ jest.mock('./PandaAPI')
 jest.mock('./CodeRepository')
 jest.mock('./TaskManagementSystem')
 
+it('save with category', async () => {
+  const MARKER = 'TODO'
+  const world = resetMockWorld()
+
+  // Round 1: Arrange
+  world.file(
+    'main.js',
+    `
+      // ${MARKER}: Hello world
+      // @category: Misc
+      // @tags: testing(#000),tag2
+      // This is great!
+
+      <!--
+        - ${MARKER}:
+        - Somebody once told me
+        - the world is gonna roll me
+        -->
+    `,
+  )
+
+  // Round 1: Act
+  await runMain();
+
+  expect(world.tasks[0].tags).toEqual([
+    { name: 'testing', color: '#000' },
+    { name: 'tag2', color: '#000000' }
+  ]);
+  expect(world.tasks[0].category).toEqual('Misc');
+
+  expect(world.tasks[1].tags).toEqual([]);
+  expect(world.tasks[1].category).toEqual(null);
+
+  world.file(
+    'main.js',
+    `
+      // ${MARKER} [${world.tasks[0].taskReference}]: Hello world
+      // @category: MiscChange
+      // @tags: testing2(red),tag
+      // This is great2!
+
+      <!--
+        - ${MARKER} [${world.tasks[1].taskReference}]:
+        - Somebody once told me2
+        - @category: New Category
+        - the world is gonna roll me
+        -->
+    `,
+  )
+
+  // Round 2: Act
+  await runMain();
+
+  expect(world.tasks[0].tags).toEqual([
+    { name: 'testing2', color: 'red' },
+    { name: 'tag', color: '#000000' }
+  ]);
+  expect(world.tasks[0].category).toEqual('MiscChange');
+
+  expect(world.tasks[1].category).toEqual('New Category');
+  expect(world.tasks[1].tags).toEqual([]);
+
+}, 10000)
+
 it('save in panda TODO', async () => {
   const MARKER = 'TODO'
   const world = resetMockWorld()
@@ -82,7 +146,7 @@ it('save in panda TODO', async () => {
   expect(!!task1.completed).toBe(true)
   expect(!!task2.completed).toBe(false)
   expect(task2.name).toBe('[DS Bot] Somebody once told me?')
-}, 10000)
+}, 10000);
 
 it('save in panda FIXME', async () => {
   const MARKER = 'FIXME'

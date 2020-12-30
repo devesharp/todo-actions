@@ -10,7 +10,9 @@ export async function createPandaTask(taskReference: string, data: any) {
     id: _id,
     taskReference: taskReference,
     name: data.name,
-    description: data.description,
+    tags: data.tags ?? [],
+    category: data.category ?? null,
+    description: data.description ?? '',
     hash: data.hash,
     new: true,
   };
@@ -30,6 +32,8 @@ export async function updatePandaTask(reference: string, data: any) {
   let task = getTask(reference);
 
   data.completed = data.status === 3;
+  data.tags = data.tags ?? [];
+  data.category = data.category ?? null;
 
   Object.assign(getTask(reference), {...getTask(reference), ...data});
 

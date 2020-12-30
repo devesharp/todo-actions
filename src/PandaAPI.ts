@@ -5,14 +5,10 @@ export async function createPandaTask(taskReference: string, data: any) {
   return Axios.put(process.env.PANDA_API + '/api/public/backlogs', {
     name: data.name,
     description: data.description,
+    tags: data.tags,
+    category: data.category,
     project_key: process.env.PROJECT_KEY,
-    todo_task_reference: taskReference,
-    tags: [
-      {
-        name: data.marker,
-        color: data.marker === 'FIXME' ? 'de173a' : '000000',
-      }
-    ]
+    todo_task_reference: taskReference
   }).then(res => {
     // // Apenas para testes
     // mockWorld.tasks.push(res.data.data);

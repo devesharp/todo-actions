@@ -77,6 +77,8 @@ export async function reconcileTasks(todos: ITodo[]) {
       await task.updateState(state, {
         name: '[DS Bot] ' + title,
         description: body,
+        tags: todo.tags,
+        category: todo.category,
       })
     } else {
       log.info(
