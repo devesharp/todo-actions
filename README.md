@@ -11,6 +11,9 @@ Turn TODO comments inside source code into GitHub issues and closes them when th
   ```js
   // TODO: Add integration test for TodoActionsMain.
   //
+  // @category: Any Category
+  // @tags: tag1(red),tag2(#000000),tag3
+  //
   // Code that interface with external data have been separated into their own modules.
   // These includes:
   //
@@ -22,36 +25,7 @@ Turn TODO comments inside source code into GitHub issues and closes them when th
   // https://jestjs.io/docs/en/manual-mocks
   ```
 
-  …and it gets turned into an issue like this:
-
-  > [<img src="./docs/images/issue.png" width="782" alt="Screenshot" />](https://github.com/dtinth/todo-actions/issues/35)
-
-  The first line is the title. The rest becomes the issue body.
-
-- The GitHub issue is updated whenever the text inside the TODO comment changes.
-  This allows elaboration and collaboration on TODO comments.
-
-- Once the TODO comment is removed, the corresponding issue is automatically closed.
-  This allows fine-grained task management, and also allows new contributors to easily contribute to the code base.
-
-  > <img src="./docs/images/pulse.png" width="740" alt="Screenshot" />
-
-  As a case study, when we [used](https://wonderful.software/elect-live/pdd/) the [0pdd](./docs/images/elect-live-example.png) tool on [codeforthailand/election-live](https://github.com/codeforthailand/election-live) project, it helped us attract 20+ contributors and visualized the work that got done in just 7 days:
-
-  > <img src="./docs/images/elect-live-pdd.png" width="740" alt="Screenshot" />
-
 ## Usage
-
-### Before You Start
-
-**Before you begin, you'll need a running MongoDB instance** This action uses MongoDB to keep track of TODO comments and their associated issues.
-
-You can get a free instance on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). The same MongoDB database can be used with multiple repositories.
-
-1. Once you have a MongoDB instance running, you need to get a URL (known as a “connection string on MongoDB’s Cloud service) to connect to your database. Follow [MongoDB’s instructions](https://docs.atlas.mongodb.com/connect-to-cluster/) for how to connect to a cluster.
-2. Once you have the connection string, copy it and go to your repository’s “Settings” tab, then to “Secrets”
-   > ![Screenshot of a repository’s “Secrets” page, inside the Settings tab.](./docs/images/github_secrets_screenshot.png)
-3. Click “Add a new secret”, give it the name TODO_ACTIONS_MONGO_URL, and paste in the MongoDB connection sctring.
 
 ### Setting up
 
