@@ -2,10 +2,10 @@ import Axios from 'axios'
 // import { mockWorld } from './__mocks__/World'
 
 export async function createPandaTask(taskReference: string, data: any) {
-  return Axios.put('http://localhost:8000/api/public/backlogs', {
+  return Axios.put(process.env.PANDA_API + '/api/public/backlogs', {
     name: data.name,
     description: data.description,
-    project_key: 'ds',
+    project_key: process.env.PROJECT_KEY,
     todo_task_reference: taskReference,
     tags: [
       {
@@ -26,8 +26,8 @@ export async function createPandaTask(taskReference: string, data: any) {
 
 export async function getUncompletedTasks(project: string) {
 
-  return Axios.post('http://localhost:8000/api/public/backlogs/uncompleted', {
-    project_key: 'ds',
+  return Axios.post(process.env.PANDA_API + '/api/public/backlogs/uncompleted', {
+    project_key: process.env.PROJECT_KEY,
   }).then(res => {
     return res.data.data.results;
   }).catch(e => {
@@ -37,7 +37,7 @@ export async function getUncompletedTasks(project: string) {
 }
 
 export async function updatePandaTask(reference: string, data: any) {
-  return Axios.put('http://localhost:8000/api/public/backlogs', {
+  return Axios.put(process.env.PANDA_API + '/api/public/backlogs', {
     ...{todo_task_reference: reference},
     ...data
   }).then(res => {

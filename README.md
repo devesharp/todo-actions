@@ -84,7 +84,8 @@ You can get a free instance on [MongoDB Atlas](https://www.mongodb.com/cloud/atl
              uses: dtinth/todo-actions@master
              env:
                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-               TODO_ACTIONS_MONGO_URL: ${{ secrets.TODO_ACTIONS_MONGO_URL }}
+               PANDA_API: ${{ secrets.PANDA_API }}
+               PROJECT_KEY: ${{ secrets.PROJECT_KEY }}
    ```
 
    _Recommended: Rename `main.yml` to something else, such as `todos.yml`_
